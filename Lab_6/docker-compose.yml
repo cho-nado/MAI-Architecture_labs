@@ -1,0 +1,117 @@
+version: '3.2'
+services:
+  gateway:
+    tty: true
+    container_name: gateway
+    build:
+      context: .
+      dockerfile: gateway_dockerfile
+    environment:
+      - CACHE_HOST=cache_db
+      - CACHE_PORT=6379
+      - USER_ADDRESS=http://user_service:8080
+      - DATA_ADDRESS=http://delivery_service:8080
+    ports:
+      - 8888:8888
+    networks:
+      - delivery-network
+  user_service:
+    tty: true
+    container_name: user_service
+    build:
+      context: .
+      dockerfile: user_service_dockerfile
+    environment:
+      - DB_HOST=user_db
+      - DB_PORT=5432
+      - DB_LOGIN=admin
+      - DB_PASSWORD=admin
+      - DB_DATABASE=userdb
+      - JWT_KEY=lrAvY1VBQMEaJIDSrhDgz5clj6oJGwqY
+      - CACHE_HOST=cache_db
+      - CACHE_PORT=6379
+    depends_on:
+      user_db:
+        condition: service_healthy
+    ports:
+      - 8080:8080
+    networks:
+      - delivery-network
+  delivery_service:
+    tty: true
+    container_name: delivery_service
+    build:
+      context: .
+      dockerfile: delivery_service_dockerfile
+    environment:
+      - DB_HOST=delivery_db
+      - DB_PORT=27017
+      - DB_DATABASE=deliverydb
+      - JWT_KEY=lrAvY1VBQMEaJIDSrhDgz5clj6oJGwqY
+      - CACHE_HOST=cache_db
+      - CACHE_PORT=6379
+    depends_on:
+      delivery_db:
+        condition: service_healthy
+    ports:
+      - 8081:8080
+    networks:
+      - delivery-network
+  user_db:
+    container_name: user_db
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - PGDATA=/data/postgres
+      - POSTGRES_DB=userdb
+    volumes:
+      - user_db:/data/postgres
+    ports:
+      - "5432:5432"
+    # restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -d postgres" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+    networks:
+      - delivery-network
+  cache_db:
+    container_name: cache_db
+    image: redis:6.2-alpine
+    # restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning 
+    networks:
+      - delivery-network
+    volumes: 
+      - cache_db:/data
+  delivery_db:
+    image: mongo:5.0
+    container_name: delivery_db
+    # restart: on-failure
+    networks:
+      - delivery-network
+    volumes:
+      - delivery_db:/data/db
+      - ./mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
+    ports:
+      - '27017:27017'
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  user_db:
+  cache_db:
+  delivery_db:
+
+
+networks:
+  delivery-network:
+    driver: "bridge"
+    external: false
