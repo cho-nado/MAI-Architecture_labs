@@ -1,0 +1,28 @@
+FROM ubuntu
+ENV TZ=Europe/Moscow
+RUN apt-get update && apt-get install -y git cmake g++ libpq-dev postgresql-client openssl libssl-dev libmysqlclient-dev libboost-all-dev\
+    && apt-get clean
+
+
+RUN git clone -b poco-1.13.3-release https://github.com/pocoproject/poco.git &&\
+    cd poco &&\
+    mkdir cmake-build &&\
+    cd cmake-build &&\
+    cmake .. &&\
+    cmake --build . --config Release &&\
+    cmake --build . --target install &&\
+    cd && rm poco -rf
+
+RUN git clone https://github.com/tdv/redis-cpp.git &&\
+    cd redis-cpp &&\
+    mkdir redis-build &&\
+    cd redis-build &&\
+    cmake .. &&\
+    make &&\
+    make install &&\
+    cd && rm redis-cpp -rf
+
+RUN ldconfig
+ADD ./service /service
+RUN cd /service && mkdir build && cd build && cmake  .. && make
+ENTRYPOINT [ "/service/build/delivery" ]

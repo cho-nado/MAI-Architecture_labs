@@ -1,0 +1,65 @@
+version: '3.2'
+services:
+  delivery:
+    tty: true
+    container_name: delivery
+    build:
+      context: .
+      dockerfile: delivery_dockerfile
+    environment:
+      - DB_HOST=delivery_postgres
+      - DB_PORT=5432
+      - DB_LOGIN=admin
+      - DB_PASSWORD=admin
+      - DB_DATABASE=archdb
+      - JWT_KEY=lrAvY1VBQMEaJIDSrhDgz5clj6oJGwqY
+      - CACHE_HOST=cache_db
+      - CACHE_PORT=6379
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - 8080:8080
+    networks:
+      - delivery-network
+  db:
+    container_name: delivery_postgres
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - PGDATA=/data/postgres
+      - POSTGRES_DB=archdb
+    volumes:
+      - delivery_db:/data/postgres
+    ports:
+      - "5432:5432"
+    # restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -d postgres" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+    networks:
+      - delivery-network
+  cache_db:
+    container_name: cache_db
+    image: redis:6.2-alpine
+    # restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning 
+    networks:
+      - delivery-network
+    volumes: 
+      - cache_db:/data
+  
+volumes:
+  delivery_db:
+  cache_db:
+
+
+networks:
+  delivery-network:
+    driver: "bridge"
+    external: false
