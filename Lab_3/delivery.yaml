@@ -1,0 +1,230 @@
+openapi: '3.0.0'
+info:
+  version: '1.0.0'
+  title: 'Lab 3'
+  description: API для сервиса доставки
+servers:
+  - url: http://localhost:8081
+    description: Delivery server
+paths:
+  /delivery:
+    get:
+      summary: Чтение информации о доставке
+      parameters:
+      - name: delivery_id
+        description: Уникальный идентификатор доставки
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/delivery_id'
+      responses:
+        '200':
+          description: Найденная доставка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/delivery'
+        404:
+          description: Доставка не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Обновление информации о доставке
+      parameters:
+      - name: delivery_id
+        description: Идентификатор доставки
+        in: query
+        required: true
+        schema:
+          type: integer
+          default: 1
+      - name: sender_id
+        description: Идентификатор отправителя
+        in: query
+        required: true
+        schema:
+          type: integer
+          default: 1
+      - name: receiver_id
+        description: Идентификатор получателя
+        in: query
+        required: true
+        schema:
+          type: integer
+          default: 1
+      - name: date
+        description: Дата отправки
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: weight
+        description: Масса посылки
+        in: query
+        required: true
+        schema:
+          type: float
+      - name: height
+        description: Высота посылки
+        in: query
+        required: true
+        schema:
+          type: float
+      - name: width
+        description: Ширина посылки
+        in: query
+        required: true
+        schema:
+          type: float
+      - name: length
+        description: Длина посылки
+        in: query
+        required: true
+        schema:
+          type: float
+      responses:
+        '200':
+          description: Идентификатор добавленной доставки
+          content:
+            application/json:
+              schema:
+                type: integer
+        404:
+          description: Ошибка добавления доставки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Добавление новой доставки
+      parameters:
+      - name: delivery_id
+        description: Идентификатор доставки
+        in: query
+        required: true
+        schema:
+          type: integer
+          default: 1
+      - name: sender_id
+        description: Идентификатор отправителя
+        in: query
+        required: true
+        schema:
+          type: integer
+          default: 1
+      - name: receiver_id
+        description: Идентификатор получателя
+        in: query
+        required: true
+        schema:
+          type: integer
+          default: 1
+      - name: date
+        description: Дата отправки
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: weight
+        description: Масса посылки
+        in: query
+        required: true
+        schema:
+          type: float
+      - name: height
+        description: Высота посылки
+        in: query
+        required: true
+        schema:
+          type: float
+      - name: width
+        description: Ширина посылки
+        in: query
+        required: true
+        schema:
+          type: float
+      - name: length
+        description: Длина посылки
+        in: query
+        required: true
+        schema:
+          type: float
+      responses:
+        '200':
+          description: Идентификатор добавленной доставки
+          content:
+            application/json:
+              schema:
+                type: integer
+        404:
+          description: Ошибка добавления доставки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    delivery_id:
+      description: Уникальный идентификатор
+      type: integer
+    delivery:
+      type: array
+      items:
+        $ref: '#/components/schemas/delivery'
+    delivery:
+      type: object
+      properties:
+        delivery_id:
+          type: integer
+        sender_id:
+          type: integer
+        receiver_id:
+          type: integer
+        date:
+          type: string
+        package:
+          type: object
+          properties:
+            weight:
+              type: float
+            height:
+              type: float
+            width:
+              type: float
+            length:
+              type: float
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          description: Сообщение о ошибке
+          type: string
+  securitySchemes:
+      bearerAuth:
+        type: http
+        scheme: bearer
+        bearerFormat: JWT
+security:
+  - bearerAuth: []
