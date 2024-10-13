@@ -1,18 +1,18 @@
-# Архитектура 2024год 
-## Сервис доставки
+# Architecture 2024
+## Delivery Service
 
-Приложение должно содержать следующие данные:
-- Пользователь
-- Посылка
-- Доставка
+The application should contain the following entities:
+- User
+- Package
+- Delivery
 
+Implement API:
 
-Реализовать API:
-- Создание нового пользователя
-- Поиск пользователя по логину
-- Поиск пользователя по маске имя и фамилии
-- Создание посылки
-- Получение посылок пользователя
-- Создание доставки от пользователя к пользователю
-- Получение информации о доставке по получателю
-- Получение информации о доставке по отправителю
+- Creating a new user
+- Searching for a user by login
+- Searching for a user by name and surname (mask)
+- Creating a package
+- Retrieving user's packages
+- Creating a delivery from one user to another
+- Retrieving delivery information by recipient
+- Retrieving delivery information by sender
